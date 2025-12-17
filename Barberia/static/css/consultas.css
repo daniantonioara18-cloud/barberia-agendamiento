@@ -1,0 +1,113 @@
+/* --- Consultas (limpio) --- */
+.consultas-page{
+  position: relative;
+  z-index: 1;
+  padding-top: 2.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Cards de catálogo */
+.svc-card{
+  background: rgba(0,0,0,.65);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  height: 100%;
+  transition: transform .15s ease;
+}
+.svc-card:hover{ transform: translateY(-2px); }
+.svc-card .card-body{ padding: 1.1rem; }
+.svc-card .card-body h3{
+  font-size: 1.05rem;
+  margin-bottom: .75rem;
+}
+.svc-card .btn{
+  width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Muestras de cortes */
+.samples img{
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+}
+
+/* Tabla de horario */
+.horario-wrap{ max-width: 560px; }
+
+/* Blindaje contra reglas viejas que rotaban cosas */
+.consultas-page .card *{
+  writing-mode: initial !important;
+  transform: none !important;
+}
+
+/* ===== PARCHE DURO SOLO PARA CONSULTAS ===== */
+.consultas-page section{
+  /* pisa la regla global */
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  align-items: normal !important;   /* por si acaso */
+  justify-content: normal !important;
+  gap: 0 !important;
+}
+
+.consultas-page section img{
+  width: 100% !important;
+  flex-grow: 0 !important;
+  opacity: 1 !important;
+  object-fit: cover !important;
+}
+
+/* deja que el grid de Bootstrap respire dentro de Consultas */
+.consultas-page .row{
+  display: flex !important;            /* valor por defecto de .row */
+  margin-right: calc(-.5 * var(--bs-gutter-x));
+  margin-left:  calc(-.5 * var(--bs-gutter-x));
+}
+.consultas-page [class^="col-"],
+.consultas-page [class*=" col-"]{
+  flex: 0 0 auto !important;           /* ancho de columnas estable */
+}
+
+/* por si algo dejó el texto “aplastado” */
+.consultas-page .card *,
+.consultas-page .btn{
+  writing-mode: horizontal-tb !important;
+  white-space: normal !important;
+  transform: none !important;
+}
+
+/* === Opcionales de estilo para /Consulta === */
+
+/* Sombra y hover de las cards del catálogo */
+.svc-card{
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.svc-card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.45);
+}
+
+/* Muestras de cortes: mini hover */
+.samples img{
+  transition: transform .15s ease, opacity .15s ease;
+}
+.samples img:hover{
+  transform: scale(1.03);
+  opacity: .95;
+}
+
+/* Botón “Ir a Agendamiento” más lindo */
+.consultas-page .btn-outline-warning{
+  border-width: 2px;
+  border-radius: 999px;
+  padding: .55rem 1.25rem;
+}
+.consultas-page .btn-outline-warning:hover{
+  box-shadow: 0 6px 16px rgba(208,169,51,.35);
+}
+

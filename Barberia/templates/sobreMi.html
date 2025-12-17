@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sobre mí | Barbererick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sobre.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<main class="container-lg py-5 about-page">
+  <h1 class="display-5 fw-semibold text-white text-center mb-4">Sobre mí</h1>
+
+  <div class="row g-4">
+    <!-- Columna izquierda -->
+    <div class="col-12 col-lg-6  reveal">
+      <div class="about-card">
+        <h2 class="h5">Quién soy</h2>
+        <p>Hola, soy Erik, barbero con 7 años de experiencia y enfoque en cortes clásicos y modernos. Me motiva que cada cliente salga con confianza.</p>
+      </div>
+
+      <div class="about-card mt-3">
+        <h2 class="h5">Misión</h2>
+        <p>Entregar un servicio puntual, prolijo y cercano, elevando la imagen personal de cada cliente con técnicas actualizadas y un trato profesional.</p>
+      </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-12 col-lg-6">
+      <div class="about-card  reveal">
+        <h2 class="h5">Ubicación</h2>
+        <p class="mb-2">Pichidegua, Villa el Paraíso, casa #25</p>
+        <div class="map-wrap ratio ratio-16x9">
+          <iframe
+            src="https://www.google.com/maps?q=Pichidegua%20Villa%20el%20Paraiso&output=embed"
+            loading="lazy" allowfullscreen="" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <a class="btn btn-outline-light" href="https://instagram.com/erikcrissbarbershop" target="_blank" rel="noopener">Instagram</a>
+          <a class="btn btn-warning" href="{% url 'agendar' %}">Agendar ahora</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segunda fila -->
+  <div class="row g-4 mt-1  reveal">
+    <div class="col-12 col-lg-6">
+      <div class="about-card">
+        <h2 class="h5">Visión</h2>
+        <p>Ser la barbería de referencia en Pichidegua por calidad, experiencia del cliente y mejora continua.</p>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="about-card">
+        <h2 class="h5">Objetivos</h2>
+        <ul class="about-list">
+          <li>Mantener estándares altos de cortes y perfilados.</li>
+          <li>Optimizar la agenda para reducir tiempos de espera.</li>
+          <li>Fidelizar a los clientes con un servicio consistente.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Listado de horas | Barbererick{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tabla {
+    width:100%;
+    border-collapse:collapse;
+    background:#000;
+    color:#fff;
+  }
+  .tabla th, .tabla td{
+    border:1px solid #d0a933;
+    padding:10px;
+    text-align:center;
+  }
+  .tabla td:hover{
+    background:#b58900;
+    color:#fff;
+    transition:.25s ease;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="container-lg py-5">
+
+  <h2 class="text-center mb-2">Listado de Horas Agendadas</h2>
+
+  <!-- Selector de días de la semana actual -->
+  <div class="d-flex justify-content-center gap-2 flex-wrap mb-4">
+    {% for w in week_days %}
+      <a class="btn btn-sm {% if w.date == selected_date %}btn-warning{% else %}btn-outline-warning{% endif %}"
+         href="?fecha={{ w.value }}">{{ w.label|capfirst }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Fecha seleccionada -->
+ <p class="text-center text-secondary mb-3">
+  Día seleccionado: <span class="text-white fw-semibold">{{ selected_label }}</span>
+</p>
+
+  {% if citas %}
+    <table class="tabla text-white w-100">
+  <thead>
+    <tr class="text-center">
+      <th>#</th>
+      <th>Reserva</th>
+      <th>Hora</th>
+      <th>Servicio</th>
+      <th>Estado</th> <!-- NUEVO -->
+    </tr>
+  </thead>
+  <tbody class="text-center">
+    {% for c in citas %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>Cita agendada</td>
+        <td>{{ c.hora_horario.hora_Horas }}</td>
+        <td>{{ c.Tipo_servicio.nombre }}</td>
+        <td>
+          {% if c.estado == 'P' %}
+            <span class="badge bg-warning text-dark">Pendiente</span>
+          {% elif c.estado == 'A' %}
+            <span class="badge bg-success">Atendida</span>
+          {% elif c.estado == 'C' %}
+            <span class="badge bg-secondary">Cancelada</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">Sin registros para este día.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+  {% else %}
+    <p class="text-center text-danger mt-4">No hay citas para este día.</p>
+  {% endif %}
+
+</main>
+{% endblock %}

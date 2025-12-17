@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Barbererick</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link href="static/css/style.css" rel="stylesheet">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                color: #333;
+            }
+            h1 {
+                text-align: center;
+                color: #ffea00;
+            }
+            p {
+                font-size: 14px;
+                margin: 10px 0;
+            }
+            .comprobante-info {
+                border: 1px solid #ddd;
+                padding: 15px;
+                margin-top: 20px;
+            }
+            .comprobante-info p {
+                font-size: 16px;
+            }
+            .comprobante-info strong {
+                font-weight: bold;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            table, th, td {
+                border: 1px solid #ddd;
+            }
+            th, td {
+                padding: 12px;
+                text-align: left;
+            }
+            th {
+                background-color: #f4f4f4;
+            }
+            .logo {
+                display: block;
+                margin: 0 auto;
+                max-width: 150px;
+            }
+        </style>
+    </head>
+    <body>
+        {% load static %}
+        <img src="{% static 'imagenes/logo.png' %}" width="100"> <!-- Asegúrate de cambiar esta ruta -->
+        <h1>Comprobante de Cita</h1>
+
+        <!-- Tabla con la información de la cita -->
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ nombre }}</td>
+            </tr>
+            <tr>
+                <th>RUT</th>
+                <td>{{ rut }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ fecha }}</td>
+            </tr>
+            <tr>
+                <th>Hora</th>
+                <td>{{ hora }}</td>
+            </tr>
+        </table>
+
+        <h1 class="text-center">Gracias por preferirnos</h1>
+        
+    </body>
+</html>

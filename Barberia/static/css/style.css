@@ -1,0 +1,768 @@
+/* barra de negacion */
+
+.navbar{
+    padding: 1.2rem 2rem;
+    background: linear-gradient(90deg, #090909, #141416, #090909);
+    border-bottom: 1px solid #d0a933;
+    box-shadow: 0 4px 15px rgba(0,0,0,.7);
+    backdrop-filter: blur(6px);
+}
+.navbar-collapse{
+    align-items: center;
+    justify-content: space-between;
+    font-size: 18px;
+}
+
+
+.nav-link{
+    color: #f5f5f5 !important;
+    font-weight: 500;
+    letter-spacing: .3px;
+}
+
+.nav-link:hover{
+    background-color: transparent;
+    color: #d0a933 !important;
+}
+.navbar-brand img{
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.7));
+}
+
+
+
+
+.movimiento{
+    transition: all 0.5s linear;
+}
+.movimiento:hover{
+    transform:scale(0.9);
+}
+
+.card{
+    background-color: #d0a933;
+    border-color: #d0a933;
+}
+
+.card-text{
+    text-align: center;
+    font-size: 25px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.img_fondo{
+    background-image: url(../imagenes/fondo3.png);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+@media screen and (max-width:766px){
+    .navbar-brand{
+        display: none;
+    }
+}
+
+/* SOLO la galería del index */
+section.galeria-flex{
+  display: flex;
+  width: 600px;
+  height: 430px;
+}
+section.galeria-flex img{
+  width: 0;
+  flex-grow: 1;
+  object-fit: cover;
+  opacity: .8;
+  transition: .5s ease;
+}
+section.galeria-flex img:hover{
+  cursor: crosshair;
+  width: 300px;
+  opacity: 1;
+  filter: contrast(120%);
+}
+
+/* En celular: que no se rompa */
+@media (max-width: 768px){
+  section.galeria-flex{
+    width: 100%;
+    height: 220px;
+  }
+  section.galeria-flex img:hover{
+    width: auto; /* evita que “explote” en touch */
+  }
+}
+
+
+/* Asegura que las imágenes mantengan proporción sin distorsión */
+/* Carrusel: mostrar el banner completo sin recortar */
+.carousel-item img {
+    width: 100%;
+    height: auto;        /* la altura la define la imagen */
+    object-fit: contain; /* o simplemente quita esta línea si quieres */
+}
+
+
+/* Carrusel responsivo: altura adaptable */
+.carousel-item{
+  height: clamp(200px, 35vw, 520px);
+}
+.carousel-item img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* ===== Agendar (aislado para no chocar con otras páginas) ===== */
+:root{
+  --accent: #d0a933;         /* tu dorado */
+  --bg-1: #1a1a1a;
+  --bg-2: #2c2c2c;
+  --bg-3: #121212;
+}
+
+/* Formulario */
+.agendar .card{
+  /* NOTA: aquí sobreescribimos SOLO en la página agendar,
+     así no dañamos tus .card doradas globales */
+  background: linear-gradient(145deg, var(--bg-1), var(--bg-2));
+  border: 1px solid var(--accent);
+  border-radius: 15px;
+  box-shadow: 0 8px 15px rgba(0,0,0,.5);
+  color: #fff;
+  padding: 20px;
+  transition: transform .2s ease, background .2s ease;
+}
+.agendar .card:hover{
+  transform: scale(1.02);
+  background: linear-gradient(145deg, #222, #333);
+}
+
+/* Campos */
+.agendar .form-control,
+.agendar .form-select{
+  background: #121212;
+  color: #fff;
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 10px;
+  transition: all .2s ease;
+}
+.agendar .form-control::placeholder{
+  color: #9aa0a6;
+}
+.agendar .form-control:focus,
+.agendar .form-select:focus{
+  background: #1d1d1d;
+  border-color: #6a5acd;
+  box-shadow: 0 0 10px rgba(106,90,205,.6);
+}
+
+/* Botón */
+.agendar .btn-primary{
+  background: linear-gradient(145deg, #6a5acd, #483d8b);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 700;
+}
+.agendar .btn-primary:hover{
+  background: linear-gradient(145deg, #483d8b, #6a5acd);
+  box-shadow: 0 5px 15px rgba(106,90,205,.5);
+}
+
+/* Títulos del formulario */
+.agendar h1.h4, .agendar h3{
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: linear-gradient(to right, #6a5acd, #483d8b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Enlaces del footer reutilizados del inline que tenías */
+.footer-link{ color:#ccc; text-decoration:none; }
+.footer-link:hover{ color:#fff; text-decoration:underline; }
+
+/* La grilla del footer que tenías inline */
+.abao{ display:grid; min-height:30dvh; grid-template-rows:auto 1fr auto; }
+
+/* ========= SOLO FOOTER (fix) ========= */
+
+/* variables del footer */
+:root{
+  --gold:#d0a933;
+  --bg-dark:#0f0f10;
+  --marble-overlay: rgba(0,0,0,.72);
+}
+
+/* que el footer siempre quede abajo cuando hay poco contenido */
+html, body { height: 100%; }
+body{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+main{ flex:1 0 auto; }    /* el contenido empuja hacia abajo */
+.site-footer{ flex-shrink:0; }
+
+/* banda de mármol + pulido visual */
+.site-footer{
+  position: relative;
+  margin-top: 4rem;
+  color:#e9e9e9;
+  background:
+    linear-gradient(var(--marble-overlay), var(--marble-overlay)),
+    url('../imagenes/fondo2.png') center/cover no-repeat fixed;
+  border-top: 1px solid var(--gold);
+  box-shadow: 0 -8px 30px rgba(0,0,0,.45) inset;
+}
+
+.site-footer__wrap{
+  padding: 48px 16px 28px;
+}
+
+.site-footer__title{
+  font-weight: 800;
+  letter-spacing:.6px;
+  margin-bottom:.75rem;
+  color:#fff;
+  text-transform:uppercase;
+  font-size:1rem;
+  border-left:4px solid var(--gold);
+  padding-left:.5rem;
+}
+
+.site-footer__map{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+
+.site-footer__logo{
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.45));
+  margin-top:.5rem;
+}
+
+.site-footer__icons{
+  display:flex;
+  gap:14px;
+  justify-content: center;
+}
+@media (min-width:768px){
+  .site-footer__icons{ justify-content: flex-end; }
+}
+
+/* Botón/iconos del footer – versión pulida (sobrescribe la simple de arriba) */
+.footer-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  text-decoration:none;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.footer-link i{
+  font-size:18px;
+  color:#fff;
+}
+.footer-link:hover{
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #6a5acd 0%, #483d8b 100%);
+  box-shadow: 0 8px 18px rgba(106,90,205,.45);
+  border-color: transparent;
+}
+
+.site-footer__divider{
+  border:0;
+  height:1px;
+  margin:28px 0 14px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity:.65;
+}
+
+.site-footer__copy{
+  color:#cfcfcf;
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+}
+
+/* separador anti “pegoteo” visual bajo el footer */
+body > .site-footer::after{
+  content:"";
+  display:block;
+  height: 16px;
+}
+
+/* Imagen de fondo ya la tienes: .img_fondo */
+/* ======= FIX FOOTER (pegar al final del CSS) ======= */
+
+/* 1) Que el layout use flex para empujar el footer al fondo */
+html, body {
+  min-height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 2) El contenido crece y el footer no se deforma */
+main {
+  flex: 1 0 auto;          /* si ya tienes <main>, perfecto; si no, no pasa nada */
+}
+.site-footer {
+  flex-shrink: 0;
+}
+
+/* 3) Evitar “bandas” por el body gigante */
+.img_fondo {
+  /* antes: height: 100em;  → eso genera cancha negra eterna */
+  height: auto !important;  /* que crezca según el contenido */
+  min-height: 100vh;        /* al menos una pantalla completa */
+}
+
+/* 4) Fondo del footer siempre visible, sin “fixed” que rompe en algunos navegadores */
+.site-footer{
+  background-attachment: scroll;   /* no usar fixed aquí */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;          /* que el mármol cubra bien */
+  padding: 48px 16px 28px;         /* por si otro CSS lo pisa */
+}
+
+/* 5) Línea y copy del footer más nítidos (opcional, estético) */
+.site-footer__divider{
+  margin: 24px 0 12px;
+  opacity: .75;
+}
+.site-footer__copy{
+  opacity: .95;
+}
+
+/* --- Layout pegajoso para que el footer quede al fondo --- */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; }
+main { flex: 1 0 auto; }   /* empuja el footer hacia abajo */
+footer { flex-shrink: 0; }
+
+/* --- Arregla el alto exagerado del fondo --- */
+.img_fondo{
+  background-image: url(../imagenes/fondo3.png);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  min-height: 100vh;   /* <- antes era height:100em */
+}
+
+/* --- Footer (tu clase .abao) más fino y centrado --- */
+.abao{
+  width: 100%;
+  padding: 24px 0 12px;
+  background:
+    linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,.72)),
+    url('../imagenes/fondo2.png') center/cover no-repeat fixed;
+  border-top: 1px solid #d0a933;
+}
+.abao .container{ max-width: 1100px; margin: 0 auto; }
+.abao h5{ font-size: 1rem; margin-bottom: .75rem; }
+.abao iframe{ width:100%; max-width:320px; height:180px; border:0; border-radius:12px; }
+.abao img[alt*="Logo"]{ width:120px; height:120px; object-fit:contain; }
+
+.site-footer__divider,
+.abao hr{
+  border:0; height:1px; margin:20px 0 10px;
+  background: linear-gradient(90deg, transparent, #d0a933, transparent);
+  opacity:.65;
+}
+
+
+/* =======================
+   FOOTER COMPACTO + PEGADO ABAJO
+   (solo overrides, seguro con tu CSS actual)
+   ======================= */
+
+/* Hace que el footer quede al fondo en páginas con poco contenido */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; }
+main { flex: 1 0 auto; }
+.site-footer { flex-shrink: 0; }
+
+/* Compacta el alto visual del footer */
+.site-footer{
+  margin-top: 1.25rem;                   /* menos espacio arriba */
+  border-top: 1px solid var(--gold);
+  background:
+    linear-gradient(var(--marble-overlay), var(--marble-overlay)),
+    url('../imagenes/fondo3.png') center / cover no-repeat fixed;
+}
+
+/* Contenedor centrado y con menos padding */
+.site-footer__wrap{
+  max-width: 1100px;                     /* ancho máx. para que no “explote” */
+  margin-inline: auto;
+  padding: 16px 12px;                    /* <— reduce alto */
+}
+
+/* Titulitos más discretos */
+.site-footer__title{
+  font-size: .95rem;
+  margin-bottom: .5rem;
+}
+
+/* Mapa y logo más pequeños */
+.site-footer__map{ width: 320px; height: 180px; }
+.site-footer__map iframe{ width: 100%; height: 100%; }
+
+.site-footer__logo{
+  width: 120px;                          /* antes 180 */
+  height: 120px;
+  object-fit: contain;
+  margin-top: .25rem;
+}
+
+/* Iconos más chicos y con menos separación */
+.site-footer__icons{ gap: 10px; }
+.footer-link{ width: 36px; height: 36px; }
+.footer-link i{ font-size: 16px; }
+
+/* Separador y copy con menos alto */
+.site-footer__divider{ margin: 12px 0 8px; }
+.site-footer__copy{ font-size: .85rem; }
+
+/* Quita cualquier “spacer” previo que agregue alto extra */
+body > .site-footer::after{ display: none !important; height: 0 !important; }
+
+/* Ajustes responsivos aún más compactos en móviles */
+@media (max-width: 992px){
+  .site-footer__wrap{ padding: 14px 10px; }
+  .site-footer__map{ width: 280px; height: 160px; }
+  .site-footer__logo{ width: 100px; height: 100px; }
+}
+
+
+
+
+/* ====== AGENDAR: layout centrado y look consistente ====== */
+
+.agendar-section{
+  display:flex;
+  justify-content:center;
+  padding: 48px 16px 72px; /* espacio para que no “toque” el footer */
+}
+
+.agendar-card{
+  width: 100%;
+  max-width: 520px;                 /* ancho bonito de tarjeta */
+  background: #151515;              /* oscuro elegante */
+  border: 1px solid var(--accent);  /* tu dorado */
+  border-radius: 16px;
+  box-shadow: 0 14px 28px rgba(0,0,0,.5);
+  padding: 24px;
+  color: #fff;
+}
+
+.agendar-title{
+  text-align:center;
+  margin-bottom: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  background: linear-gradient(to right, #6a5acd, #483d8b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.agendar-card .form-control,
+.agendar-card .form-select{
+  background: #0f0f10;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+}
+
+.agendar-card .form-control:focus,
+.agendar-card .form-select:focus{
+  background: #131316;
+  border-color: #6a5acd;
+  box-shadow: 0 0 0 0.2rem rgba(106,90,205,.25);
+}
+
+.agendar-card .btn-primary{
+  background: linear-gradient(145deg, #6a5acd, #483d8b);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+.agendar-card .btn-primary:hover{
+  background: linear-gradient(145deg, #483d8b, #6a5acd);
+  box-shadow: 0 8px 18px rgba(106,90,205,.45);
+}
+
+@media (min-width: 992px){
+  .agendar-section{ padding: 56px 0 88px; }
+}
+/* ====== Agendar: centrado y neutralizar reglas globales que molestan ====== */
+
+/* Neutraliza la regla global de section SOLO en esta página */
+.agendar-page section{
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+/* Card y campos del form (mismo look que ya venías usando) */
+.agendar-page .agendar-card{
+  background: linear-gradient(145deg, var(--bg-1), var(--bg-2));
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  color: #fff;
+  box-shadow: 0 8px 15px rgba(0,0,0,.5);
+}
+
+/* Extra: compacta un poco el espacio */
+.agendar-page .container{ padding-bottom: 2rem; }
+/* Login compacto y centrado */
+.login-card{
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+}
+.login-card .form-control{
+  background:#121212; color:#fff; border:2px solid #444; border-radius:10px;
+}
+.login-card .form-control:focus{
+  background:#1d1d1d; border-color:#6a5acd; box-shadow:0 0 10px rgba(106,90,205,.5);
+}
+
+
+/* ===== FIX SOLO PARA LA PÁGINA CONSULTAS (aislado) ===== */
+.consultas-page{
+  position: relative;
+  z-index: 1;
+  padding-top: 2.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Neutraliza tu regla global de <section> dentro de Consultas */
+.consultas-page section{
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+}
+.consultas-page section img{
+  width: 100% !important;
+  flex-grow: 0 !important;
+  opacity: 1 !important;
+  object-fit: cover;
+}
+
+/* Tus .card globales son doradas; aquí las dejo oscuras solo en Consultas */
+.consultas-page .card{
+  background: rgba(0,0,0,.65) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  border-radius: 12px;
+}
+.consultas-page .card .card-body{ padding: 1rem; }
+.consultas-page .card .btn{
+  width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Muestras de cortes */
+.consultas-page .samples img{
+  height: 130px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+}
+
+/* Tabla de horario centrada y contenida */
+.consultas-page .horario-wrap{ max-width: 560px; }
+
+
+
+/* === Reveal on scroll === */
+.reveal{
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .6s ease, transform .6s ease;
+  will-change: opacity, transform;
+}
+.reveal--in{
+  opacity: 1;
+  transform: none;
+}
+
+/* === Micro-interacciones suaves === */
+.card { transition: transform .18s ease, box-shadow .18s ease; }
+.card:hover { transform: translateY(-4px); }
+
+.btn { transition: transform .12s ease, box-shadow .12s ease; }
+.btn:hover { transform: translateY(-1px); }
+
+/* === Subrayado animado en la navbar === */
+.nav-link{
+  position:relative;
+  overflow:visible;
+}
+.nav-link::after{
+  content:"";
+  position:absolute;
+  left:12%;
+  right:12%;
+  bottom:-6px;
+  height:2px;
+  background:#d0a933;
+  transform:scaleX(0);
+  transform-origin:center;
+  transition:transform .18s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after{ transform:scaleX(1); }
+
+/* === Ripple (botones) === */
+.btn{ position:relative; overflow:hidden; }
+.btn .ripple{
+  position:absolute; border-radius:50%;
+  background:rgba(255,255,255,.35);
+  transform: scale(0); animation:rip .45s ease-out forwards;
+  pointer-events:none; mix-blend-mode: screen;
+}
+@keyframes rip { to { transform:scale(2.6); opacity:0; } }
+
+
+/* Stagger genérico: aplica pequeños delays según el orden */
+.stagger > * { transition-delay: .0s; }
+.stagger > *:nth-child(1) { transition-delay: .05s; }
+.stagger > *:nth-child(2) { transition-delay: .10s; }
+.stagger > *:nth-child(3) { transition-delay: .15s; }
+.stagger > *:nth-child(4) { transition-delay: .20s; }
+.stagger > *:nth-child(5) { transition-delay: .25s; }
+.stagger > *:nth-child(6) { transition-delay: .30s; }
+
+
+@media (max-width: 768px){
+  .reveal{ transform: translateY(12px); }
+}
+@media (prefers-reduced-motion: reduce){
+  .reveal, .reveal--in, .btn, .card, .nav-link::after { 
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+
+.mensaje-error-animado {
+    max-width: 400px;
+    margin: 10px auto 15px auto;   /* centrado */
+    padding: 8px 16px;
+    background: #ffd4d4;            /* rojo clarito */
+    color: #7a1111;
+    border: 1px solid #ff9c9c;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    
+    /* Animaciones */
+    animation: slideDown 0.4s ease-out, fadeOut 0.4s ease-in 4s forwards;
+}
+
+/* Entra desde arriba suavemente */
+@keyframes slideDown {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Se desvanece después de unos segundos */
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+
+/* ====== OVERRIDE TEMA CLARO (FORZADO) ====== */
+
+
+
+
+
+html, body {
+    height: 100%;
+    background: #000; /* respaldo */
+}
+
+body.img_fondo {
+    background-image: url('../imagenes/fondo2.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* ===== Mostrar siempre el fondo de cuero del body ===== */
+
+/* Fondo base oscuro (por si no carga la imagen) */
+body {
+    background-color: #000;
+}
+
+/* Que el contenido no tenga fondos sólidos negros encima */
+main,
+section,
+.container,
+.container-fluid,
+.row {
+    background-color: transparent !important;
+}
+
+
+/* === SOLO EL PANEL USARÁ fondo3.png === */
+
+.panel-fondo {
+    background-image: url('../imagenes/fondo3.png') !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+
+/* ====== Cards de cortes (solo index) ====== */
+.corte-card{
+  width: 100%;
+  max-width: 320px;      /* tamaño “bonito” en PC */
+  background-color: #d0a933;
+  border-color: #d0a933;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Imagen con proporción fija para que NO se “infle” */
+.corte-img{
+  width: 100%;
+  aspect-ratio: 4 / 5;   /* ajusta el alto sin que se vuelva gigante */
+  object-fit: cover;
+}
+
+/* En pantallas grandes, un pelín más chica si la sientes grande */
+@media (min-width: 1200px){
+  .corte-card{ max-width: 290px; }
+}

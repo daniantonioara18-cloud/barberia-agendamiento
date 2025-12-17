@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Consultas | Barbererick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/consultas.css' %}?v=4">
+{% endblock %}
+
+{% block content %}
+<main class="container-lg py-5 consultas-page">
+  <h1 class="display-5 fw-semibold text-white text-center mb-4">Consultas</h1>
+
+  <!-- Catálogo -->
+  <section class="mb-5">
+    <h2 class="h4 text-white text-center mb-3  reveal">Catálogo disponible</h2>
+    <p class="text-secondary text-center mb-4  reveal text-white">
+      Estos son los servicios que ofrece la barbería. Puedes ir directo a reservar con un click.
+    </p>
+
+    <div class="row g-4 justify-content-center  reveal">
+      {% for s in servicios %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="card svc-card text-white text-center  reveal">
+            <div class="card-body">
+              <h3 class="h5 mb-3">{{ s.nombre }}</h3>
+              <a href="{% url 'agendar' %}?servicio={{ s.id }}" class="btn btn-warning">
+                Agendar {{ s.nombre|lower }}
+              </a>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-12 col-md-8">
+          <div class="alert alert-dark bg-dark-80 border-0 text-center">
+            Aún no hay servicios creados.
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Muestras -->
+  <section class="mb-5">
+    <h2 class="h4 text-white text-center mb-3  reveal">Cortes de pelo (muestras)</h2>
+    <div class="row g-3 justify-content-center samples">
+  {% for _ in '1234' %}
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2  reveal">
+      <img src="{% static 'imagenes/corte' %}{{ forloop.counter }}.png"
+           alt="Corte {{ forloop.counter }}">
+    </div>
+  {% endfor %}
+</div>
+  </section>
+
+  
+
+  <!-- Horario -->
+  <section>
+    <h2 class="h4 text-white text-center mb-3  reveal">Horario de atención</h2>
+    <div class="table-responsive mx-auto horario-wrap  reveal">
+      <table class="table table-dark table-striped table-borderless align-middle">
+        <tbody>
+          {% for dia, rango in horario_atencion %}
+          <tr>
+            <th class="w-50">{{ dia }}</th>
+            <td class="text-end">{{ rango }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-center mt-3">
+      <a class="btn btn-outline-warning" href="{% url 'agendar' %}">Ir a Agendamiento</a>
+    </div>
+  </section>
+</main>
+{% endblock %}

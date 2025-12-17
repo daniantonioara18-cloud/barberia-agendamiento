@@ -1,0 +1,429 @@
+{# templates/panel/calendario.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Calendario | Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+<style>
+  /* ===== Panel base ===== */
+  .panel-wrap{ max-width:1100px; margin:0 auto; padding:20px 12px; }
+  .filters{ gap:12px; }
+
+  #calendar{
+    background:rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    padding:10px;
+    overflow: hidden; /* evita “reventar” en iOS */
+  }
+
+  /* Título barra */
+  .fc .fc-toolbar-title{ color:#ffd54f; }
+  .fc .fc-button{ border:0; }
+
+  /* Encabezados + números */
+  .fc .fc-col-header-cell-cushion{ color:black !important; }
+  .fc .fc-daygrid-day-number{ color:#ffd54f !important; }
+
+  /* Texto de eventos */
+  .fc .fc-daygrid-event .fc-event-time,
+  .fc .fc-daygrid-event .fc-event-title{
+    color:#ffd54f !important;
+    font-weight:600;
+  }
+
+  /* ===== Acciones derecha (botones export) ===== */
+  .panel-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:end;
+  }
+
+  /* ===== Card gráfico ===== */
+  .panel-card{
+    background: rgba(0,0,0,.35);
+    border:1px solid rgba(255,215,0,.35);
+    border-radius:12px;
+    padding: 12px;
+  }
+
+  /* ===== Responsive Mobile ===== */
+  @media (max-width: 768px){
+    .panel-wrap{ padding: 14px 10px; }
+
+    /* filtros en 1 columna */
+    .filters{
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .filters > div{
+      width: 100%;
+    }
+
+    /* el form (abrir/cerrar hoy) que no quede “encimado” */
+    .filters form{
+      width: 100%;
+      margin: 0 !important;
+    }
+    .filters form button{
+      width: 100%;
+    }
+    .filters form .badge{
+      display:block;
+      width: 100%;
+      margin-top: 6px;
+      text-align:center;
+    }
+
+    /* botones derecha: que queden a 2 por fila o 1 por fila si no cabe */
+    .panel-actions{
+      width: 100%;
+    }
+    .panel-actions .btn{
+      flex: 1 1 160px;    /* se reparten */
+      min-width: 160px;
+    }
+
+    /* FullCalendar: toolbar en 2 líneas y botones más chicos */
+    .fc .fc-toolbar{
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .fc .fc-toolbar-chunk{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      width: 100%;
+    }
+    .fc .fc-button{
+      padding: .35rem .55rem;
+      font-size: .85rem;
+    }
+    .fc .fc-toolbar-title{
+      font-size: 1.05rem;
+      width: 100%;
+      text-align:center;
+    }
+
+    /* Calendario: reduce padding para ganar espacio */
+    #calendar{ padding: 6px; }
+
+    /* Chart: un poco más bajo en móvil */
+    .chart-wrap{
+      height: 220px !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-wrap">
+  <h1 class="h4 mb-3">Calendario de citas</h1>
+
+  <!-- Filtros -->
+  <div class="d-flex flex-wrap filters mb-3">
+
+    <div>
+      <label class="form-label">Servicio</label>
+      <select id="f-servicio" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        {% for s in servicios %}
+          <option value="{{ s.id }}">{{ s.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="form-label">Estado</label>
+      <select id="f-estado" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        <option value="P">Pendiente</option>
+        <option value="A">Atendida</option>
+        <option value="C">Cancelada</option>
+      </select>
+    </div>
+
+    <form method="post" class="mb-3">
+      {% csrf_token %}
+      {% if hoy_cerrado %}
+        <button name="abrir_hoy" class="btn btn-success">Abrir hoy</button>
+        <span class="ms-2 badge bg-danger">HOY CERRADO ({{ hoy|date:"d-m-Y" }})</span>
+      {% else %}
+        <button name="cerrar_hoy" class="btn btn-danger">Cerrar hoy</button>
+        <span class="ms-2 badge bg-success">HOY ABIERTO ({{ hoy|date:"d-m-Y" }})</span>
+      {% endif %}
+    </form>
+
+    <!-- Acciones -->
+    <div class="ms-auto panel-actions">
+      <a class="btn btn-outline-warning btn-sm" href="{% url 'panel_horarios' %}">
+        Ver tabla & filtros
+      </a>
+
+      <a id="btn-export" class="btn btn-warning btn-sm" href="#">
+        Exportar CSV (vista)
+      </a>
+
+      <a id="btn-export-excel" class="btn btn-success btn-sm" href="#">
+        Exportar Excel (vista)
+      </a>
+    </div>
+  </div>
+
+  <!-- Calendario -->
+  <div id="calendar"></div>
+  <!-- Botón y sección de canceladas -->
+<div class="mt-3">
+  <button class="btn btn-outline-danger btn-sm" type="button"
+          data-bs-toggle="collapse" data-bs-target="#canceladasBox"
+          aria-expanded="false" aria-controls="canceladasBox">
+    Ver citas canceladas (rango visible)
+  </button>
+
+  <div class="collapse mt-2" id="canceladasBox">
+    <div class="p-3" style="background: rgba(0,0,0,.35); border:1px solid rgba(239,68,68,.35); border-radius:12px;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="m-0" style="color:#ef4444; font-weight:700;">Citas canceladas</h6>
+        <small class="text-white-50" id="canceladasHint"></small>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="font-size:.92rem;">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>RUT</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Servicio</th>
+            </tr>
+          </thead>
+          <tbody id="canceladasBody">
+            <tr><td colspan="5" class="text-center text-white-50">Sin datos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Chart -->
+  <div class="mt-4 panel-card">
+    <h5 class="mb-2" style="color:#f5c542;">Citas por servicio (rango visible)</h5>
+
+    <div class="chart-wrap" style="height:260px;">
+      <canvas id="chartServicios"></canvas>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales-all.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const calEl     = document.getElementById('calendar');
+  const fServicio = document.getElementById('f-servicio');
+  const fEstado   = document.getElementById('f-estado');
+
+  const btnExport      = document.getElementById('btn-export');
+  const btnExportExcel = document.getElementById('btn-export-excel');
+
+  // --- CANCELADAS UI ---
+  const canceladasBody = document.getElementById('canceladasBody');
+  const canceladasHint = document.getElementById('canceladasHint');
+
+  // --- CHART ---
+  const chartCanvas = document.getElementById('chartServicios');
+  let chartServicios = null;
+
+  function ymd(d){
+    const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return dd.toISOString().slice(0,10);
+  }
+
+  function setExportLinkFromCalendar(calendar){
+    const startStr = ymd(calendar.view.activeStart);
+    const endStr   = ymd(calendar.view.activeEnd);
+
+    const params = new URLSearchParams({ start:startStr, end:endStr });
+    if (fServicio.value) params.append('servicio', fServicio.value);
+    if (fEstado.value)   params.append('estado', fEstado.value);
+
+    btnExport.href      = "{% url 'panel_export_rango' %}?" + params.toString();
+    btnExportExcel.href = "{% url 'panel_export_rango_excel' %}?" + params.toString();
+  }
+
+  async function loadChartData(calendar){
+    const startStr = ymd(calendar.view.activeStart);
+    const endStr   = ymd(calendar.view.activeEnd);
+
+    const params = new URLSearchParams({ start: startStr, end: endStr });
+    if (fServicio.value) params.append('servicio', fServicio.value);
+    if (fEstado.value)   params.append('estado', fEstado.value);
+
+    const url = "{% url 'panel_api_stats' %}?" + params.toString();
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const labels = data.labels || [];
+    const values = data.values || [];
+
+    if (!chartCanvas) return;
+
+    if (!chartServicios) {
+      chartServicios = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Cantidad de citas',
+            backgroundColor: 'rgba(245, 197, 66, 0.75)',
+            borderColor: 'rgba(245, 197, 66, 1)',
+            borderWidth: 1,
+            data: values,
+            barThickness: 18,
+            maxBarThickness: 22
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: 'white',
+                precision: 0,
+                stepSize: 1,
+                callback: (v) => Number.isInteger(v) ? v : ''
+              }
+            },
+            y: {
+              ticks: { color:'white', autoSkip: false }
+            }
+          }
+        }
+      });
+    } else {
+      chartServicios.data.labels = labels;
+      chartServicios.data.datasets[0].data = values;
+      chartServicios.update();
+    }
+  }
+
+  // --- CANCELADAS DATA ---
+  async function loadCanceladas(calendar){
+    if(!canceladasBody) return; // por si no pegaste el HTML aún
+
+    const startStr = ymd(calendar.view.activeStart);
+    const endStr   = ymd(calendar.view.activeEnd);
+
+    const params = new URLSearchParams({ start: startStr, end: endStr });
+    if (fServicio.value) params.append('servicio', fServicio.value);
+
+    if (canceladasHint) canceladasHint.textContent = `Rango: ${startStr} → ${endStr}`;
+
+    try{
+      const url = "{% url 'panel_api_canceladas' %}?" + params.toString();
+      const res = await fetch(url);
+      const data = await res.json();
+      const rows = Array.isArray(data.rows) ? data.rows : [];
+
+      if(!rows.length){
+        canceladasBody.innerHTML = `<tr><td colspan="5" class="text-center text-white-50">No hay canceladas en este rango.</td></tr>`;
+        return;
+      }
+
+      canceladasBody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.nombre}</td>
+          <td>${r.rut}</td>
+          <td>${r.fecha}</td>
+          <td>${r.hora}</td>
+          <td>${r.servicio}</td>
+        </tr>
+      `).join('');
+    }catch(e){
+      canceladasBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error cargando canceladas.</td></tr>`;
+    }
+  }
+
+  const calendar = new FullCalendar.Calendar(calEl, {
+    initialView: 'dayGridMonth',
+    locale: 'es',
+    height: 'auto',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+    },
+    navLinks: true,
+    nowIndicator: true,
+    firstDay: 1,
+    eventTimeFormat: { hour:'2-digit', minute:'2-digit', hour12:false },
+
+    datesSet(){
+      setExportLinkFromCalendar(calendar);
+      loadChartData(calendar);
+      loadCanceladas(calendar);
+    },
+
+    events(fetchInfo, successCallback, failureCallback){
+      const params = new URLSearchParams({
+        start: fetchInfo.startStr,
+        end: fetchInfo.endStr
+      });
+      if (fServicio.value) params.append('servicio', fServicio.value);
+      if (fEstado.value)   params.append('estado', fEstado.value);
+
+      fetch(`{% url 'panel_api_events' %}?` + params.toString())
+        .then(r => r.json())
+        .then(data => successCallback(data))
+        .catch(err => failureCallback(err));
+    },
+
+    eventClick(info){
+      const e = info.event;
+      const p = e.extendedProps || {};
+      const detalle =
+        `Cliente: ${e.title}\n` +
+        `Día/Hora: ${e.start.toLocaleString()}\n` +
+        `Servicio: ${p.servicio || ''}\n` +
+        `Estado: ${p.estado || ''}\n` +
+        `Tel: ${p.celular || ''}   RUT: ${p.rut || ''}\n\n` +
+        `ID cita: ${e.id}`;
+      alert(detalle);
+    }
+  });
+
+  calendar.render();
+  setExportLinkFromCalendar(calendar);
+  loadChartData(calendar);
+  loadCanceladas(calendar);
+
+  [fServicio, fEstado].forEach(el => {
+    el.addEventListener('change', () => {
+      calendar.refetchEvents();
+      setExportLinkFromCalendar(calendar);
+      loadChartData(calendar);
+      loadCanceladas(calendar);
+    });
+  });
+});
+</script>
+
+{% endblock %}
