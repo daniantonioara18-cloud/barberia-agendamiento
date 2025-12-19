@@ -580,7 +580,7 @@ def consultas(request):
 
 
 def mostrarSobreMI(request):
-    return render(request, 'sobreMI.html')
+    return render(request, 'sobreMi.html')
 
 
 def mostrarAgendamiento(request):
