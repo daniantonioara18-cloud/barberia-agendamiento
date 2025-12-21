@@ -2,74 +2,59 @@ from django.core.management.base import BaseCommand
 from Barberia.models import Dias, Horas, Tipo_servicio
 
 class Command(BaseCommand):
-    help = "Carga datos iniciales: días, horas y servicios"
+    help = "Carga datos iniciales: días, horas y servicios (BASE + ADDON)"
 
     def handle(self, *args, **options):
 
-        # 1️⃣ DÍAS
-        dias = [
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-            "Sábado",
-        ]
-
+        # 1) DÍAS
+        dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
         for d in dias:
             Dias.objects.get_or_create(dia_Dias=d)
 
-        # 2️⃣ HORAS
-        # Lunes a Viernes: 12:00 a 19:30
-        # Sábado: 12:00 a 15:00
+        # 2) HORAS
         horas = set()
 
-        def generar_horas(h_inicio, h_fin):
+        def agregar_rango(h_inicio, h_fin, incluye_media_hora_final=True):
             h = h_inicio
             m = 0
             while True:
                 horas.add(f"{h:02d}:{m:02d}")
-                if h == h_fin and m == 30:
+
+                # Condición de corte
+                if h == h_fin and ((m == 30 and incluye_media_hora_final) or (m == 0 and not incluye_media_hora_final)):
                     break
+
                 m += 30
                 if m >= 60:
                     m = 0
                     h += 1
 
-        # Lunes a Viernes
-        generar_horas(12, 19)
+        # Lun–Vie: 12:00 a 19:30  (=> h_fin=19, incluye 19:30)
+        agregar_rango(12, 19, incluye_media_hora_final=True)
 
-        # Sábado (hasta 15:00)
-        h = 12
-        m = 0
-        while True:
-            horas.add(f"{h:02d}:{m:02d}")
-            if h == 15 and m == 0:
-                break
-            m += 30
-            if m >= 60:
-                m = 0
-                h += 1
+        # Sáb: 12:00 a 15:00 (=> h_fin=15, NO incluye 15:30)
+        agregar_rango(12, 15, incluye_media_hora_final=False)
 
         for hora in sorted(horas):
             Horas.objects.get_or_create(hora_Horas=hora)
 
-        # 3️⃣ SERVICIOS (EDITABLES POR TI)
+        # 3) SERVICIOS (BASE + ADDON) - idempotente
         servicios = [
-            ("Corte", 8000),
-            ("Corte + Barba", 15000),
-            ("Barba", 5000),
+            # BASE
+            ("Corte de pelo", 8000, "BASE"),
+            ("Limpieza facial", 10000, "BASE"),
+            ("Barba", 5000, "BASE"),
+
+            # ADDON
+            ("Perfilado de barba", 3000, "ADDON"),
+            ("Perfilado de cejas", 2000, "ADDON"),
+            ("Líneas", 1000, "ADDON"),
         ]
 
-        for nombre, precio in servicios:
-            obj, created = Tipo_servicio.objects.get_or_create(
+        for nombre, precio, tipo in servicios:
+            Tipo_servicio.objects.update_or_create(
                 nombre=nombre,
-                defaults={"precio_servicio": precio}
+                defaults={"precio_servicio": precio, "tipo": tipo},
             )
-
-            # Si ya existe, actualiza el precio
-            if not created and obj.precio_servicio != precio:
-                obj.precio_servicio = precio
-                obj.save(update_fields=["precio_servicio"])
 
         self.stdout.write(self.style.SUCCESS("Seed ejecutado correctamente."))
