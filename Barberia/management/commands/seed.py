@@ -38,12 +38,11 @@ class Command(BaseCommand):
         for hora in sorted(horas):
             Horas.objects.get_or_create(hora_Horas=hora)
 
-        # 3) SERVICIOS (BASE + ADDON) - idempotente
+        # 3️⃣ SERVICIOS (BASE y ADDON)
         servicios = [
             # BASE
             ("Corte de pelo", 8000, "BASE"),
             ("Limpieza facial", 10000, "BASE"),
-            ("Barba", 5000, "BASE"),
 
             # ADDON
             ("Perfilado de barba", 3000, "ADDON"),
@@ -52,7 +51,7 @@ class Command(BaseCommand):
         ]
 
         for nombre, precio, tipo in servicios:
-            Tipo_servicio.objects.update_or_create(
+            obj, created = Tipo_servicio.objects.update_or_create(
                 nombre=nombre,
                 defaults={"precio_servicio": precio, "tipo": tipo},
             )
