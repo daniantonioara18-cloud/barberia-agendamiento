@@ -37,44 +37,62 @@
   </div>
 
   <!-- Fecha seleccionada -->
- <p class="text-center text-secondary mb-3">
-  Día seleccionado: <span class="text-white fw-semibold">{{ selected_label }}</span>
-</p>
+  <p class="text-center text-secondary mb-3">
+    Día seleccionado: <span class="text-white fw-semibold">{{ selected_label }}</span>
+  </p>
 
   {% if citas %}
     <table class="tabla text-white w-100">
-  <thead>
-    <tr class="text-center">
-      <th>#</th>
-      <th>Reserva</th>
-      <th>Hora</th>
-      <th>Servicio</th>
-      <th>Estado</th> <!-- NUEVO -->
-    </tr>
-  </thead>
-  <tbody class="text-center">
-    {% for c in citas %}
-      <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>Cita agendada</td>
-        <td>{{ c.hora_horario.hora_Horas }}</td>
-        <td>{{ c.Tipo_servicio.nombre }}</td>
-        <td>
-          {% if c.estado == 'P' %}
-            <span class="badge bg-warning text-dark">Pendiente</span>
-          {% elif c.estado == 'A' %}
-            <span class="badge bg-success">Atendida</span>
-          {% elif c.estado == 'C' %}
-            <span class="badge bg-secondary">Cancelada</span>
-          {% endif %}
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5" class="text-center text-muted">Sin registros para este día.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+      <thead>
+        <tr class="text-center">
+          <th>#</th>
+          <th>Reserva</th>
+          <th>Hora</th>
+          <th>Servicio</th>
+          <th>Agregados</th>     {# ✅ NUEVO #}
+          <th>Total</th>         {# ✅ NUEVO #}
+          <th>Estado</th>
+        </tr>
+      </thead>
 
+      <tbody class="text-center">
+        {% for c in citas %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>Cita agendada</td>
+            <td>{{ c.hora_horario.hora_Horas }}</td>
+
+            <td>{{ c.Tipo_servicio.nombre }}</td>
+
+            <td style="text-align:left;">
+              {% for a in c.agregados.all %}
+                {{ a.nombre }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                —
+              {% endfor %}
+            </td>
+
+            <td>
+              ${{ c.total|floatformat:0 }}
+            </td>
+
+            <td>
+              {% if c.estado == 'P' %}
+                <span class="badge bg-warning text-dark">Pendiente</span>
+              {% elif c.estado == 'A' %}
+                <span class="badge bg-success">Atendida</span>
+              {% elif c.estado == 'C' %}
+                <span class="badge bg-secondary">Cancelada</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted">Sin registros para este día.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% else %}
     <p class="text-center text-danger mt-4">No hay citas para este día.</p>
   {% endif %}

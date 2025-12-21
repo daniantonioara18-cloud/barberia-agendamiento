@@ -76,15 +76,31 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Tipo de Servicio</label>
-              <select class="form-select" id="servicio" name="servicio_id" required>
+              <label class="form-label">Servicio Principal</label>
+              <select class="form-select" id="servicio_base" name="servicio_base_id" required>
                 <option value="" disabled selected>Seleccione un Servicio</option>
 
                 {# ✅ IMPORTANTE: data-precio desde tu modelo Tipo_servicio.precio_servicio #}
-                {% for x in tipos_disponibles %}
+                {% for x in tipos_base %}
                   <option value="{{ x.id }}" data-precio="{{ x.precio_servicio }}">{{ x.nombre }}</option>
                 {% endfor %}
               </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Agregados (opcional)</label>
+              <div class="d-grid gap-2">
+                {% for a in tipos_addons %}
+                <label class="d-flex align-items-center gap-2">
+                  <input type="checkbox"
+                  class="form-check-input addon-check"
+                  name="addons_ids"
+                  value="{{a.id}}"
+                  data-precio="{{a.precio_servicio}}">
+                  <span>{{ a.nombre }} ({{ a.precio_servicio }})</span>
+                </label>
+                 {% endfor %}
+              </div>
             </div>
 
             <div class="mb-3">
@@ -185,16 +201,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const servicioSel = document.getElementById('servicio');
+  const servicioBaseSel = document.getElementById('servicio_base');
   const diaUI       = document.getElementById('diaSelect');
   const fechaHidden = document.getElementById('fecha');
   const horasSel    = document.getElementById('hora');
+
   const boxOcupadas   = document.getElementById('boxOcupadas');
   const tbodyOcupadas = document.getElementById('tbodyOcupadas');
   const ocupadasVacio = document.getElementById('ocupadasVacio');
 
-
-  // ✅ NUEVO: input donde se muestra el precio
   const precioInput = document.getElementById('precio_servicio');
 
   const diasIdx = { "Lunes":1, "Martes":2, "Miércoles":3, "Jueves":4, "Viernes":5, "Sábado":6 };
@@ -204,10 +219,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return "$" + val.toLocaleString("es-CL");
   }
 
-  function actualizarPrecio(){
-    const opt = servicioSel.options[servicioSel.selectedIndex];
-    const precio = opt ? opt.dataset.precio : "";
-    precioInput.value = precio ? formatCLP(precio) : "—";
+  function totalAddons(){
+    let sum = 0;
+    document.querySelectorAll(".addon-check:checked").forEach(ch => {
+      sum += Number(ch.dataset.precio || 0);
+    });
+    return sum;
+  }
+
+  function actualizarPrecioTotal(){
+    const opt = servicioBaseSel.options[servicioBaseSel.selectedIndex];
+    const base = opt ? Number(opt.dataset.precio || 0) : 0;
+    const addons = totalAddons();
+    const total = base + addons;
+    precioInput.value = base ? formatCLP(total) : "—";
   }
 
   function mondayBase(d){
@@ -246,30 +271,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function cargarHoras(){
     horasSel.innerHTML = `<option disabled selected>Cargando...</option>`;
-    const servicio = servicioSel.value;
+    const servicio = servicioBaseSel.value;
     const fecha = fechaHidden.value;
+
     if(!servicio || !fecha){
       horasSel.innerHTML = `<option disabled selected>Seleccione una hora</option>`;
       return;
     }
+
     try{
       const res = await fetch(`/api/slots?fecha=${encodeURIComponent(fecha)}&servicio=${encodeURIComponent(servicio)}`);
       const data = await res.json();
+
       horasSel.innerHTML = '';
       const lista = Array.isArray(data.slots) ? data.slots : [];
+
       if(!lista.length){
         horasSel.innerHTML = `<option disabled selected>No hay horas disponibles</option>`;
         return;
       }
+
+      const placeholder = document.createElement('option');
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      placeholder.textContent = "Seleccione una hora";
+      placeholder.value = "";
+      horasSel.appendChild(placeholder);
+
       lista.forEach(h => {
         const opt = document.createElement('option');
-        opt.value = h; opt.textContent = h;
+        opt.value = h;
+        opt.textContent = h;
         horasSel.appendChild(opt);
       });
+
     }catch(e){
       horasSel.innerHTML = `<option disabled selected>Error cargando horas</option>`;
     }
   }
+
   async function cargarOcupadas(){
     const fecha = fechaHidden.value;
     if(!fecha){
@@ -283,7 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const rows = Array.isArray(data.rows) ? data.rows : [];
       tbodyOcupadas.innerHTML = "";
-
       boxOcupadas.style.display = "block";
 
       if(!rows.length){
@@ -304,32 +343,38 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     }catch(e){
-      // Si falla, no rompemos nada: ocultamos la caja
       boxOcupadas.style.display = "none";
     }
   }
 
-
+  // Eventos
   diaUI.addEventListener('change', () => {
     const nombreDia = diaUI.value;
     fechaHidden.value = fechaDeDiaSemana(nombreDia);
-    if(servicioSel.value) cargarHoras();
-    cargarOcupadas(); // ✅ NUEVO
+    if(servicioBaseSel.value) cargarHoras();
+    cargarOcupadas();
   });
 
-  servicioSel.addEventListener('change', () => {
-    actualizarPrecio();               // ✅ NUEVO
+  servicioBaseSel.addEventListener('change', () => {
+    actualizarPrecioTotal();
     if(fechaHidden.value) cargarHoras();
-    cargarOcupadas(); // ✅ NUEVO (opcional, pero recomendado)
+    cargarOcupadas();
   });
 
-  bloquearDiasPasados();
+  document.querySelectorAll(".addon-check").forEach(ch => {
+    ch.addEventListener("change", actualizarPrecioTotal);
+  });
 
-  // ✅ Inicializa “precio” en pantalla (queda en — hasta que elijan servicio)
-  actualizarPrecio();
+  // Init
+  bloquearDiasPasados();
+  actualizarPrecioTotal();
 
   const first = [...diaUI.options].find(o => o.value && !o.disabled);
-  if (first){ diaUI.value = first.value; diaUI.dispatchEvent(new Event('change')); }
+  if (first){
+    diaUI.value = first.value;
+    diaUI.dispatchEvent(new Event('change'));
+  }
 });
 </script>
+
 {% endblock %}

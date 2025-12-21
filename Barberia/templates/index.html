@@ -33,6 +33,14 @@
   </button>
 </div>
 
+  {% if hoy_cerrado %}
+    <div class="text-center mb-3">
+      <h5 class="m-0" style="color:#f59e0b; font-weight:700; letter-spacing:1px;">
+        HOY {{ hoy_nombre|upper }} CERRADO
+      </h5>
+    </div>
+  {% endif %}
+
 <div class="container mt-4">
   <h1 class="text-center">CORTES DE CABELLO</h1>
 </div>

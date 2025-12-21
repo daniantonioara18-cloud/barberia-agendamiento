@@ -58,15 +58,29 @@ class Dias(models.Model):
         return str(self.dia_Dias)
     
 class Tipo_servicio(models.Model):
-    nombre=models.CharField(max_length=20)
+    TIPOS = (
+        ("BASE","Base"),
+        ("ADDON",'Agregado'),
+    )
+
+    nombre=models.CharField(max_length=50)
     precio_servicio=models.PositiveIntegerField()
+    tipo = models.CharField(max_length=10,choices=TIPOS,default="BASE")
     def __str__(self):
-        return str(self.nombre)
+        return f"{self.nombre}"
     
 class Horario(models.Model):
     usuario_horario=models.ForeignKey(Usuario, on_delete=models.CASCADE)
     hora_horario=models.ForeignKey(Horas, on_delete=models.CASCADE)
     Tipo_servicio=models.ForeignKey(Tipo_servicio,on_delete=models.CASCADE)
+
+    agregados = models.ManyToManyField(
+        "Tipo_servicio",
+        blank=True,
+        related_name="horarios_agregados",
+        limit_choices_to={"tipo": "ADDON"},
+    )
+
     dia_horario=models.ForeignKey(Dias, on_delete=models.CASCADE)
     fecha=models.DateField(null=True,blank=True)
     ESTADOS=[
@@ -75,8 +89,14 @@ class Horario(models.Model):
         ('C','Cancelada')
     ]
     estado=models.CharField(max_length=1,choices=ESTADOS,default='P')
+    @property
+    def total(self):
+        base = self.Tipo_servicio.precio_servicio
+        return base + sum(a.precio_servicio for a in self.agregados.all())
+    
     def __str__(self):
-        return str(self.usuario_horario)+"-"+str(self.hora_horario)+"-"+str(self.Tipo_servicio)+"-"+str(self.dia_horario)
+        return f"{self.usuario_horario} - {self.fecha} {self.hora_horario} - {self.Tipo_servicio}"
+
     
 
 

@@ -35,6 +35,7 @@ LOGOUT_REDIRECT_URL='/Agendamiento'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'django.contrib.humanize',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

@@ -124,6 +124,10 @@ def panel_api_events(request):
     Endpoint FullCalendar.
     GET ?start=YYYY-MM-DD&end=YYYY-MM-DD (end exclusivo)
     Opcional: servicio=ID, estado=P/A/C
+
+    MODIFICACIÓN:
+    - NO devolvemos eventos cancelados (estado='C') nunca para el calendario.
+      Las canceladas se ven en la tabla "Citas canceladas (rango visible)".
     """
     start = request.GET.get("start")
     end = request.GET.get("end")
@@ -148,7 +152,11 @@ def panel_api_events(request):
     if servicio.isdigit():
         qs = qs.filter(Tipo_servicio_id=int(servicio))
 
-    if estado in dict(Horario.ESTADOS).keys():
+    # --- MOD: el calendario nunca muestra canceladas ---
+    qs = qs.exclude(estado="C")
+
+    # Si igual quieres filtrar por estado, solo permitimos P/A (C ya está excluida)
+    if estado in dict(Horario.ESTADOS).keys() and estado in ["P", "A"]:
         qs = qs.filter(estado=estado)
 
     COLOR_ESTADO = {
@@ -196,6 +204,13 @@ def panel_api_events(request):
 @login_required
 @user_passes_test(_solo_staff)
 def panel_export_rango(request):
+    """
+    Export CSV de la vista actual del calendario (rango visible).
+
+    MODIFICACIÓN:
+    - Agrega columnas: Agregados, Total
+    - Prefetch de agregados para evitar N+1
+    """
     start_str = request.GET.get("start")
     end_str = request.GET.get("end")  # end exclusivo
     servicio = request.GET.get("servicio")
@@ -212,6 +227,7 @@ def panel_export_rango(request):
     qs = (
         Horario.objects
         .select_related('usuario_horario', 'hora_horario', 'Tipo_servicio', 'dia_horario')
+        .prefetch_related('agregados')  # MOD
         .filter(fecha__gte=start, fecha__lt=end)
         .order_by('fecha', 'hora_horario__hora_Horas')
     )
@@ -225,10 +241,14 @@ def panel_export_rango(request):
     resp['Content-Disposition'] = f'attachment; filename="citas_{start:%Y%m%d}_{end:%Y%m%d}.csv"'
 
     w = csv.writer(resp)
-    w.writerow(['ID', 'Fecha', 'Hora', 'Cliente', 'RUT', 'Teléfono', 'Servicio', 'Día', 'Estado'])
+    w.writerow([
+        'ID', 'Fecha', 'Hora', 'Cliente', 'RUT', 'Teléfono', 'Servicio', 'Día', 'Estado',
+        'Agregados', 'Total'  # MOD
+    ])
 
     estado_label = dict(Horario.ESTADOS)
     for c in qs:
+        agregados_txt = ", ".join([a.nombre for a in c.agregados.all()])  # usa prefetch
         w.writerow([
             c.id,
             (c.fecha.isoformat() if c.fecha else ""),
@@ -239,6 +259,8 @@ def panel_export_rango(request):
             c.Tipo_servicio.nombre,
             c.dia_horario.dia_Dias,
             estado_label.get(c.estado, ''),
+            agregados_txt,               # MOD
+            getattr(c, "total", ""),     # MOD (property total)
         ])
     return resp
 
@@ -246,6 +268,13 @@ def panel_export_rango(request):
 @login_required
 @user_passes_test(_solo_staff)
 def panel_export_rango_excel(request):
+    """
+    Export Excel de la vista actual del calendario (rango visible).
+
+    MODIFICACIÓN:
+    - Agrega columnas: Agregados, Total
+    - Prefetch de agregados para evitar N+1
+    """
     start_str = request.GET.get("start")
     end_str = request.GET.get("end")  # end exclusivo
     servicio = request.GET.get("servicio")
@@ -262,6 +291,7 @@ def panel_export_rango_excel(request):
     qs = (
         Horario.objects
         .select_related('usuario_horario', 'hora_horario', 'Tipo_servicio', 'dia_horario')
+        .prefetch_related('agregados')  # MOD
         .filter(fecha__gte=start, fecha__lt=end)
         .order_by('fecha', 'hora_horario__hora_Horas')
     )
@@ -275,11 +305,15 @@ def panel_export_rango_excel(request):
     ws = wb.active
     ws.title = "Citas"
 
-    headers = ['ID', 'Fecha', 'Hora', 'Cliente', 'RUT', 'Teléfono', 'Servicio', 'Día', 'Estado']
+    headers = [
+        'ID', 'Fecha', 'Hora', 'Cliente', 'RUT', 'Teléfono', 'Servicio', 'Día', 'Estado',
+        'Agregados', 'Total'  # MOD
+    ]
     ws.append(headers)
 
     estado_label = dict(Horario.ESTADOS)
     for c in qs:
+        agregados_txt = ", ".join([a.nombre for a in c.agregados.all()])
         ws.append([
             c.id,
             (c.fecha.strftime("%d-%m-%Y") if c.fecha else ""),
@@ -290,6 +324,8 @@ def panel_export_rango_excel(request):
             c.Tipo_servicio.nombre,
             c.dia_horario.dia_Dias,
             estado_label.get(c.estado, ""),
+            agregados_txt,           # MOD
+            getattr(c, "total", ""), # MOD
         ])
 
     header_fill = PatternFill("solid", fgColor="111111")
@@ -338,6 +374,9 @@ def panel_api_stats(request):
     """
     GET ?start=YYYY-MM-DD&end=YYYY-MM-DD (end exclusivo)
     Opcional: estado=P/A/C  servicio=ID
+
+    MODIFICACIÓN:
+    - El gráfico NO debe contar canceladas (estado='C') nunca.
     """
     start_str = request.GET.get("start")
     end_str = request.GET.get("end")
@@ -357,8 +396,15 @@ def panel_api_stats(request):
         fecha__lt=end
     )
 
-    if estado in dict(Horario.ESTADOS).keys():
+    # --- MOD: nunca contar canceladas ---
+    qs = qs.exclude(estado="C")
+
+    # Si el usuario elige estado, solo aplicamos P/A (C no cuenta)
+    if estado in dict(Horario.ESTADOS).keys() and estado in ["P", "A"]:
         qs = qs.filter(estado=estado)
+    elif estado == "C":
+        # explícitamente pidió canceladas -> gráfico vacío
+        return JsonResponse({"labels": [], "values": []})
 
     if servicio.isdigit():
         qs = qs.filter(Tipo_servicio_id=int(servicio))
@@ -559,7 +605,14 @@ def login_view(request):
 # =========================
 
 def mostrarindex(request):
-    return render(request, 'index.html')
+    hoy=timezone.localdate()
+    hoy_nombre = DIAS_ES[hoy.weekday()]
+    hoy_cerrado = DiaCerrado.objects.filter(fecha=hoy).exists()
+    return render(request, 'index.html',{
+        "hoy_cerrado": hoy_cerrado,
+        'hoy_nombre': hoy_nombre
+
+    })
 
 
 def consultas(request):
@@ -587,7 +640,8 @@ def mostrarAgendamiento(request):
     """
     Render del formulario agendar.html
     """
-    tipos = Tipo_servicio.objects.all()
+    bases = Tipo_servicio.objects.filter(tipo="BASE").order_by("nombre")
+    addons = Tipo_servicio.objects.filter(tipo="ADDON").order_by("nombre")
 
     dias_db = set(Dias.objects.values_list("dia_Dias", flat=True))
     dias_dis = [d for d in ORDEN_DIAS_ATENCION if d in dias_db]
@@ -597,7 +651,8 @@ def mostrarAgendamiento(request):
     hoy_cerrado = DiaCerrado.objects.filter(fecha=hoy).exists()
 
     return render(request, "agendar.html", {
-        "tipos_disponibles": tipos,
+        "tipos_base": bases,
+        "tipos_addons": addons,
         "dias_disponibles": dias_dis,
         "hoy_nombre": hoy_nombre,
         "hoy_cerrado": hoy_cerrado,
@@ -697,8 +752,6 @@ def api_slots(request):
     return JsonResponse({"slots": slots})
 
 
-
-
 @require_GET
 def api_ocupadas(request):
     """
@@ -715,8 +768,6 @@ def api_ocupadas(request):
     except ValueError:
         return JsonResponse({"rows": []})
 
-    # si quieres que día cerrado muestre todo como "no disponible", podrías manejarlo aquí,
-    # pero por ahora mostramos solo las ocupadas en BD.
     qs = (
         Horario.objects
         .select_related("hora_horario", "dia_horario")
@@ -746,11 +797,12 @@ def RegistrarHorario(request):
     name = request.POST.get("name")
     rutificador = request.POST.get("rut")
     celu = request.POST.get("telefono")
-    servicio_id = request.POST.get("servicio_id")
+    servicio_base_id = request.POST.get("servicio_base_id")
+    addons_ids = request.POST.getlist("addons_ids")
     hora_str = request.POST.get("hora")
     fecha_str = request.POST.get("fecha")
 
-    if not all([name, rutificador, celu, servicio_id, hora_str, fecha_str]):
+    if not all([name, rutificador, celu, servicio_base_id, hora_str, fecha_str]):
         return HttpResponseBadRequest("Faltan datos.")
 
     try:
@@ -773,7 +825,7 @@ def RegistrarHorario(request):
     hora_obj = get_object_or_404(Horas, hora_Horas=hora_str)
 
     try:
-        servicio_id_int = int(servicio_id)
+        servicio_id_int = int(servicio_base_id)
     except (TypeError, ValueError):
         return HttpResponseBadRequest("Servicio inválido.")
 
@@ -799,10 +851,13 @@ def RegistrarHorario(request):
         usuario_horario=user,
         dia_horario=dia_obj,
         hora_horario=hora_obj,
-        Tipo_servicio_id=servicio_id_int,
+        Tipo_servicio_id=int(servicio_base_id),
         fecha=f,
         estado='P'
     )
+    # Guardar agregados (si vienen)
+    if addons_ids:
+        horario.agregados.set(addons_ids)
 
     return render(request, "exito.html", {
         "nombre": user.nombre,
@@ -855,6 +910,7 @@ def mostrarlistadoHora(request):
         .filter(fecha=f)
         .exclude(estado='C')
         .select_related('usuario_horario', 'hora_horario', 'Tipo_servicio', 'dia_horario')
+        .prefetch_related('agregados')
         .order_by('hora_horario__hora_Horas')
     )
 
